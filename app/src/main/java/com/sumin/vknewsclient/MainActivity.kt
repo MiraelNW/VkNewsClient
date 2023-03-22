@@ -3,23 +3,27 @@ package com.sumin.vknewsclient
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.sumin.vknewsclient.ui.theme.Post
+import androidx.activity.viewModels
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import com.sumin.vknewsclient.domain.FeedPost
+import com.sumin.vknewsclient.ui.theme.MainScreen
 import com.sumin.vknewsclient.ui.theme.VkNewsClientTheme
 
 class MainActivity : ComponentActivity() {
+
+    private val viewModel by viewModels<MainViewModel> ()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-//            VkNewsClientTheme {
-//                Post()
-//            }
+            val feedPost = remember {
+                mutableStateOf(FeedPost())
+            }
+            VkNewsClientTheme {
+                MainScreen(viewModel)
+            }
         }
     }
 }
+
+

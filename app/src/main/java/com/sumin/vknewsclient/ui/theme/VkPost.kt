@@ -1,7 +1,8 @@
 package com.sumin.vknewsclient.ui.theme
 
-import android.widget.Space
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Card
@@ -13,63 +14,125 @@ import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sumin.vknewsclient.R
+import com.sumin.vknewsclient.domain.FeedPost
+import com.sumin.vknewsclient.domain.StatisticType
+import com.sumin.vknewsclient.domain.StatisticItem
 
 @Composable
-fun Post() {
-    Card(modifier = Modifier.padding(4.dp)) {
-        Column() {
-            PostHeader()
-            Text(
-                text = "Something went wrong or not i don't know it is text for example",
-                Modifier.padding(start = 4.dp, end = 4.dp)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Image(
-                painter = painterResource(id = R.drawable.post_content_image),
-                contentDescription = "",
-                modifier = Modifier.fillMaxWidth(),
-                contentScale = ContentScale.FillWidth
-            )
-            UserReaction()
+fun Post(
+    feedPost: FeedPost,
+    onLikeClickListener: (StatisticItem) -> Unit,
+    onShareClickListener: (StatisticItem) -> Unit,
+    onCommentClickListener: (StatisticItem) -> Unit,
+    onViewsClickListener: (StatisticItem) -> Unit,
+) {
+    Column {
+        Card(modifier = Modifier) {
+            Column() {
+                PostHeader(feedPost)
+                Text(
+                    text = feedPost.contentText,
+                    Modifier.padding(start = 4.dp, end = 4.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Image(
+                    painter = painterResource(id = feedPost.contentImageResId),
+                    contentDescription = "",
+                    modifier = Modifier.fillMaxWidth(),
+                    contentScale = ContentScale.FillWidth
+                )
+                UserReaction(
+                    feedPost.statistics,
+                    onLikeClickListener = onLikeClickListener,
+                    onShareClickListener = onShareClickListener,
+                    onCommentClickListener = onCommentClickListener,
+                    onViewsClickListener = onViewsClickListener
+                )
+            }
         }
+        Spacer(
+            modifier = Modifier
+                .height(4.dp)
+                .fillMaxWidth()
+                .background(Color.Gray.copy(alpha = 0.2f))
+
+        )
     }
+
 }
 
 @Composable
-fun UserReaction() {
+fun UserReaction(
+    statistics: List<StatisticItem>,
+    onLikeClickListener: (StatisticItem) -> Unit,
+    onShareClickListener: (StatisticItem) -> Unit,
+    onCommentClickListener: (StatisticItem) -> Unit,
+    onViewsClickListener: (StatisticItem) -> Unit,
+) {
     Row(
         modifier = Modifier.padding(start = 4.dp, end = 4.dp)
     ) {
         Row(
             modifier = Modifier.weight(1f)
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_views_count),
-                contentDescription = ""
+            val views = statistics.getItemByType(StatisticType.VIEWS)
+            TextWithImage(imageResIs = R.drawable.ic_views_count, str = views.count.toString(),
+                onItemClickListener = {
+                    onViewsClickListener(views)
+                }
             )
-            Text(text = "960")
         }
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier.weight(1f),
         ) {
-            TextWithImage(imageResIs = R.drawable.ic_share, str = "7")
-            TextWithImage(imageResIs = R.drawable.ic_comment, str = "8")
-            TextWithImage(imageResIs = R.drawable.ic_like, str = "23")
+            val shares = statistics.getItemByType(StatisticType.SHARES)
+            TextWithImage(
+                imageResIs = R.drawable.ic_share,
+                str = shares.count.toString(),
+                onItemClickListener = {
+                    onShareClickListener(shares)
+                }
+            )
+            val comments = statistics.getItemByType(StatisticType.COMMENTS)
+            TextWithImage(
+                imageResIs = R.drawable.ic_comment,
+                str = comments.count.toString(),
+                onItemClickListener = {
+                    onCommentClickListener(comments)
+                }
+            )
+            val likes = statistics.getItemByType(StatisticType.LIKES)
+            TextWithImage(imageResIs = R.drawable.ic_like,
+                str = likes.count.toString(),
+                onItemClickListener = {
+                    onLikeClickListener(likes)
+                }
+            )
         }
 
     }
 }
 
+private fun List<StatisticItem>.getItemByType(type: StatisticType): StatisticItem {
+    return this.find { (it.type == type) } ?: throw IllegalArgumentException()
+}
+
 @Composable
-private fun TextWithImage(imageResIs: Int, str: String) {
-    Row {
+private fun TextWithImage(imageResIs: Int, str: String, onItemClickListener: () -> Unit) {
+    Row(
+        modifier = Modifier.clickable {
+            onItemClickListener()
+        }
+    ) {
         Image(
             painter = painterResource(id = imageResIs),
             contentDescription = "",
@@ -83,14 +146,14 @@ private fun TextWithImage(imageResIs: Int, str: String) {
 }
 
 @Composable
-private fun PostHeader() {
+private fun PostHeader(feedPost: FeedPost) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(4.dp)
     ) {
         Image(
-            painter = painterResource(id = R.drawable.post_comunity_thumbnail),
+            painter = painterResource(id = feedPost.avatarResId),
             contentDescription = "",
             modifier = Modifier
                 .size(50.dp)
@@ -101,32 +164,15 @@ private fun PostHeader() {
                 .weight(1f)
                 .padding(4.dp)
         ) {
-            Text(text = "Уволено")
-            Text(text = "14:00")
+            Text(text = feedPost.communityName)
+            Text(text = feedPost.publicationDate)
 
         }
         Icon(
             imageVector = Icons.Rounded.MoreVert,
             contentDescription = "",
             tint = MaterialTheme.colors.onSecondary
-            )
+        )
     }
 
-}
-
-@Composable
-@Preview
-private fun DarkThemePreview() {
-    VkNewsClientTheme(darkTheme = true) {
-        Post()
-    }
-
-}
-
-@Composable
-@Preview
-private fun LightThemePreview() {
-    VkNewsClientTheme(darkTheme = false) {
-        Post()
-    }
 }
