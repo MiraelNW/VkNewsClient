@@ -1,23 +1,26 @@
 package com.sumin.vknewsclient.ui.theme
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.sumin.vknewsclient.MainViewModel
+import com.sumin.vknewsclient.NewsFeedViewModel
 import com.sumin.vknewsclient.domain.FeedPost
-import com.sumin.vknewsclient.domain.PostComment
 import com.sumin.vknewsclient.navigation.AppNavGraph
+import com.sumin.vknewsclient.navigation.Screen
 import com.sumin.vknewsclient.navigation.rememberNavigationState
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
 @Composable
-fun MainScreen(viewModel: MainViewModel) {
+fun MainScreen() {
 
     val navigationState = rememberNavigationState()
+
+    val commentsToPost: MutableState<FeedPost?> = remember {
+        mutableStateOf(null)
+    }
 
     Scaffold(
         bottomBar = {
@@ -52,11 +55,18 @@ fun MainScreen(viewModel: MainViewModel) {
         }) { paddingValues ->
         AppNavGraph(
             navHostController = navigationState.navHostController,
-            homeScreenContent = {
-                HomeScreen(
-                    viewModel = viewModel,
-                    paddingValues = paddingValues
-                )
+            newsFeedScreenContent = {
+                HomeScreen(paddingValues = paddingValues) {
+                    commentsToPost.value = it
+                    navigationState.navigateTo(Screen.Comments.route)
+                }
+            },
+            commentsScreenContent = {
+                CommentsScreen(
+                    feedPost = commentsToPost.value!!,
+                    onBackPressed = {
+                        commentsToPost.value = null
+                    })
             },
             favouriteScreenContent = { Text(text = "Favourite") },
             profileScreenContent = { Text(text = "Profile") }

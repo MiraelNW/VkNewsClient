@@ -4,25 +4,29 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navigation
+import com.sumin.vknewsclient.ui.theme.NewsFeedScreenState
 
 @Composable
 fun AppNavGraph(
     navHostController: NavHostController,
-    homeScreenContent : @Composable () -> Unit,
-    favouriteScreenContent : @Composable () -> Unit,
-    profileScreenContent : @Composable () -> Unit,
+    commentsScreenContent: @Composable () -> Unit,
+    favouriteScreenContent: @Composable () -> Unit,
+    profileScreenContent: @Composable () -> Unit,
+    newsFeedScreenContent: @Composable () -> Unit,
 ) {
     NavHost(
         navController = navHostController,
-        startDestination = Screen.NewsFeed.route
-    ){
-        composable(Screen.NewsFeed.route){
-            homeScreenContent()
-        }
-        composable(Screen.Favourite.route){
+        startDestination = Screen.Home.route
+    ) {
+        homeScreenNavGraph(
+            newsFeedScreenContent = newsFeedScreenContent,
+            commentsScreenContent = commentsScreenContent
+        )
+        composable(Screen.Favourite.route) {
             favouriteScreenContent()
         }
-        composable(Screen.Profile.route){
+        composable(Screen.Profile.route) {
             profileScreenContent()
         }
     }

@@ -11,16 +11,11 @@ import com.sumin.vknewsclient.ui.theme.MainScreen
 import com.sumin.vknewsclient.ui.theme.VkNewsClientTheme
 
 class MainActivity : ComponentActivity() {
-
-    private val viewModel by viewModels<MainViewModel> ()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val feedPost = remember {
-                mutableStateOf(FeedPost())
-            }
             VkNewsClientTheme {
-                MainScreen(viewModel)
+                MainScreen()
             }
         }
     }
