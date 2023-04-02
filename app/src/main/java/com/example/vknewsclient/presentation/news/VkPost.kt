@@ -1,6 +1,5 @@
 package com.example.vknewsclient.ui.theme
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,6 +18,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.vknewsclient.domain.FeedPost
 import com.example.vknewsclient.domain.StatisticType
 import com.example.vknewsclient.domain.StatisticItem
@@ -41,10 +41,12 @@ fun Post(
                     Modifier.padding(start = 4.dp, end = 4.dp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Image(
-                    painter = painterResource(id = feedPost.contentImageResId),
+                AsyncImage(
+                    model = feedPost.communityImageUrl,
                     contentDescription = "",
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
                     contentScale = ContentScale.FillWidth
                 )
                 UserReaction(
@@ -52,7 +54,8 @@ fun Post(
                     onLikeClickListener = onLikeClickListener,
                     onShareClickListener = onShareClickListener,
                     onCommentClickListener = onCommentClickListener,
-                    onViewsClickListener = onViewsClickListener
+                    onViewsClickListener = onViewsClickListener,
+                    isLiked = feedPost.isLiked
                 )
             }
         }
@@ -74,15 +77,18 @@ fun UserReaction(
     onShareClickListener: (StatisticItem) -> Unit,
     onCommentClickListener: (StatisticItem) -> Unit,
     onViewsClickListener: (StatisticItem) -> Unit,
+    isLiked: Boolean
 ) {
     Row(
-        modifier = Modifier.padding(start = 4.dp, end = 4.dp)
+        modifier = Modifier.padding(4.dp)
     ) {
         Row(
             modifier = Modifier.weight(1f)
         ) {
             val views = statistics.getItemByType(StatisticType.VIEWS)
-            TextWithImage(imageResIs = R.drawable.ic_views_count, str = views.count.toString(),
+            TextWithImage(
+                imageResIs = R.drawable.ic_views_count,
+                str = formatStatisticCount(views.count),
                 onItemClickListener = {
                     onViewsClickListener(views)
                 }
@@ -95,7 +101,7 @@ fun UserReaction(
             val shares = statistics.getItemByType(StatisticType.SHARES)
             TextWithImage(
                 imageResIs = R.drawable.ic_share,
-                str = shares.count.toString(),
+                str = formatStatisticCount(shares.count),
                 onItemClickListener = {
                     onShareClickListener(shares)
                 }
@@ -103,20 +109,32 @@ fun UserReaction(
             val comments = statistics.getItemByType(StatisticType.COMMENTS)
             TextWithImage(
                 imageResIs = R.drawable.ic_comment,
-                str = comments.count.toString(),
+                str = formatStatisticCount(comments.count),
                 onItemClickListener = {
                     onCommentClickListener(comments)
                 }
             )
             val likes = statistics.getItemByType(StatisticType.LIKES)
-            TextWithImage(imageResIs = R.drawable.ic_like,
-                str = likes.count.toString(),
+            TextWithImage(
+                imageResIs = if (isLiked) R.drawable.ic_like_set else R.drawable.ic_like,
+                str = formatStatisticCount(likes.count),
                 onItemClickListener = {
                     onLikeClickListener(likes)
-                }
+                },
+                tint = if (isLiked) DarkRed else MaterialTheme.colors.onSecondary
             )
         }
 
+    }
+}
+
+private fun formatStatisticCount(count: Int): String {
+    return if (count > 100_000) {
+        String.format("%sK", count / 1000)
+    } else if (count > 1000) {
+        String.format("%.1fK", count / 1000f)
+    } else {
+        count.toString()
     }
 }
 
@@ -125,22 +143,28 @@ private fun List<StatisticItem>.getItemByType(type: StatisticType): StatisticIte
 }
 
 @Composable
-private fun TextWithImage(imageResIs: Int, str: String, onItemClickListener: () -> Unit) {
+private fun TextWithImage(
+    imageResIs: Int,
+    str: String,
+    onItemClickListener: () -> Unit,
+    tint: Color = MaterialTheme.colors.onSecondary
+) {
     Row(
         modifier = Modifier.clickable {
             onItemClickListener()
         }
     ) {
-        Image(
+        Icon(
             painter = painterResource(id = imageResIs),
             contentDescription = "",
+            tint = tint,
             modifier = Modifier
                 .size(20.dp)
+
         )
         Spacer(modifier = Modifier.width(2.dp))
         Text(text = str, fontSize = 16.sp)
     }
-
 }
 
 @Composable
@@ -150,8 +174,8 @@ private fun PostHeader(feedPost: FeedPost) {
             .fillMaxWidth()
             .padding(4.dp)
     ) {
-        Image(
-            painter = painterResource(id = feedPost.avatarResId),
+        AsyncImage(
+            model = feedPost.communityImageUrl,
             contentDescription = "",
             modifier = Modifier
                 .size(50.dp)

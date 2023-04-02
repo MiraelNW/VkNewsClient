@@ -4,23 +4,20 @@ import android.os.Bundle
 import android.os.Parcelable
 import androidx.navigation.NavType
 import com.google.gson.Gson
-import com.example.vknewsclient.R
 import kotlinx.parcelize.Parcelize
+import kotlin.random.Random
 
 @Parcelize
 data class FeedPost(
-    val id: Int = 0,
-    val communityName: String = "Уволено",
-    val publicationDate: String = "14:00",
-    val avatarResId: Int = R.drawable.post_comunity_thumbnail,
-    val contentText: String = "Something went wrong or not i don't know it is text for example",
-    val contentImageResId: Int = R.drawable.post_content_image,
-    val statistics: List<StatisticItem> = listOf(
-        StatisticItem(type = StatisticType.VIEWS, count = 966),
-        StatisticItem(type = StatisticType.SHARES, count = 7),
-        StatisticItem(type = StatisticType.COMMENTS, count = 8),
-        StatisticItem(type = StatisticType.LIKES, count = 27),
-    )
+    val id: Long,
+    val communityId: Long,
+    val communityName: String,
+    val publicationDate: String,
+    val communityImageUrl: String,
+    val contentText: String,
+    val contentImageUrl: String?,
+    val statistics: List<StatisticItem>,
+    val isLiked : Boolean = Random.nextBoolean()
 ) : Parcelable {
 
     companion object {

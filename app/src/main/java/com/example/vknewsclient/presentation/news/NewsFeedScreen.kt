@@ -2,16 +2,12 @@ package com.example.vknewsclient.ui.theme
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.DismissDirection
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.SwipeToDismiss
-import androidx.compose.material.rememberDismissState
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,10 +34,11 @@ fun NewsFeedScreen(
                 viewModel = viewModel,
                 paddingValues = paddingValues,
                 posts = currentState.posts,
-                onCommentClickListener = onCommentClickListener
+                onCommentClickListener = onCommentClickListener,
+                nextDataIsLoading = currentState.nextDataIsLoading
             )
         }
-        NewsFeedScreenState.Initial -> {}
+        is NewsFeedScreenState.Initial -> {}
     }
 }
 
@@ -51,13 +48,14 @@ private fun FeedPosts(
     viewModel: NewsFeedViewModel,
     paddingValues: PaddingValues,
     posts: List<FeedPost>,
-    onCommentClickListener: (FeedPost) -> Unit
+    onCommentClickListener: (FeedPost) -> Unit,
+    nextDataIsLoading: Boolean
 ) {
     LazyColumn(
         modifier = Modifier.padding(paddingValues),
         contentPadding = PaddingValues(
             top = 8.dp,
-            bottom = 72.dp
+            bottom = 16.dp
         )
     ) {
         items(items = posts, key = { it.id }) { feedPost ->
@@ -86,11 +84,26 @@ private fun FeedPosts(
                         onCommentClickListener(feedPost)
                     },
                     onLikeClickListener = {
-                        viewModel.updateCount(feedPost, it)
+                        viewModel.changeLikeStatus(feedPost)
                     },
                 )
             }
         }
+        item {
+            if (nextDataIsLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .padding(16.dp)
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                SideEffect {
+                    viewModel.loadNextRecommendations()
+                }
+            }
+        }
     }
-
 }
