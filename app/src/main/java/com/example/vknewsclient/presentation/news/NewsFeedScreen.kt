@@ -8,26 +8,46 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.vknewsclient.presentation.news.NewsFeedViewModel
-import com.example.vknewsclient.domain.FeedPost
+import com.example.vknewsclient.domain.entity.FeedPost
+import com.example.vknewsclient.getApplicationComponent
 import com.example.vknewsclient.presentation.news.NewsFeedScreenState
-
 
 @Composable
 fun NewsFeedScreen(
     paddingValues: PaddingValues,
     onCommentClickListener: (FeedPost) -> Unit
 ) {
+    val component = getApplicationComponent()
 
-    val viewModel: NewsFeedViewModel = viewModel()
+    val viewModel: NewsFeedViewModel = viewModel(factory = component.getViewModelFactory())
 
-    val screenState = viewModel.screenState.observeAsState(NewsFeedScreenState.Initial)
+    val screenState = viewModel.screenState.collectAsState(NewsFeedScreenState.Initial)
 
+    NewsFeedScreenContent(
+        screenState = screenState,
+        viewModel = viewModel,
+        paddingValues = paddingValues,
+        onCommentClickListener = onCommentClickListener
+    )
+
+}
+
+@Composable
+fun NewsFeedScreenContent(
+    screenState: State<NewsFeedScreenState>,
+    viewModel: NewsFeedViewModel,
+    paddingValues: PaddingValues,
+    onCommentClickListener: (FeedPost) -> Unit
+
+) {
     when (val currentState = screenState.value) {
         is NewsFeedScreenState.FeedPosts -> {
             FeedPosts(
@@ -39,8 +59,19 @@ fun NewsFeedScreen(
             )
         }
         is NewsFeedScreenState.Initial -> {}
+        NewsFeedScreenState.Loading -> {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = DarkBlue)
+            }
+        }
     }
 }
+
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
 @Composable
@@ -74,12 +105,6 @@ private fun FeedPosts(
                 }) {
                 Post(
                     feedPost,
-                    onViewsClickListener = {
-                        viewModel.updateCount(feedPost, it)
-                    },
-                    onShareClickListener = {
-                        viewModel.updateCount(feedPost, it)
-                    },
                     onCommentClickListener = {
                         onCommentClickListener(feedPost)
                     },
@@ -95,9 +120,10 @@ private fun FeedPosts(
                     modifier = Modifier
                         .fillMaxWidth()
                         .wrapContentHeight()
-                        .padding(16.dp)
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = DarkBlue)
                 }
             } else {
                 SideEffect {

@@ -1,7 +1,8 @@
 package com.example.vknewsclient.navigation
 
+import android.net.Uri
 import com.google.gson.Gson
-import com.example.vknewsclient.domain.FeedPost
+import com.example.vknewsclient.domain.entity.FeedPost
 
 sealed class Screen(
     val route: String
@@ -14,21 +15,26 @@ sealed class Screen(
 
     object Home : Screen(ROUTE_HOME)
 
-    object Comments : Screen(ROUTE_COMMENTS){
+    object Comments : Screen(ROUTE_COMMENTS) {
 
         private const val ROUTE_FOR_ARGS = "comments"
-        fun getRouteWithArgs(feedPost: FeedPost):String{
+        fun getRouteWithArgs(feedPost: FeedPost): String {
             val feedPostToJson = Gson().toJson(feedPost)
-            return "$ROUTE_FOR_ARGS/$feedPostToJson"
+            return "$ROUTE_FOR_ARGS/${feedPostToJson.encode()}"
         }
     }
 
-    private companion object {
-        const val ROUTE_COMMENTS = "comments/{feed_post}"
-        const val ROUTE_HOME = "home"
-        const val ROUTE_NEWS_FEED = "news_feed"
-        const val ROUTE_FAVOURITE = "favourite"
-        const val ROUTE_PROFILE = "profile"
+    companion object {
+        const val KEY_FOR_ARGUMENTS = "feed_post"
+        private const val ROUTE_COMMENTS = "comments/{$KEY_FOR_ARGUMENTS}"
+        private const val ROUTE_HOME = "home"
+        private const val ROUTE_NEWS_FEED = "news_feed"
+        private const val ROUTE_FAVOURITE = "favourite"
+        private const val ROUTE_PROFILE = "profile"
+    }
+
+    fun String.encode(): String {
+        return Uri.encode(this)
     }
 
 }

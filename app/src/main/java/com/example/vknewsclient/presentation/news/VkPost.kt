@@ -19,18 +19,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.vknewsclient.domain.FeedPost
-import com.example.vknewsclient.domain.StatisticType
-import com.example.vknewsclient.domain.StatisticItem
+import com.example.vknewsclient.domain.entity.FeedPost
+import com.example.vknewsclient.domain.entity.StatisticType
+import com.example.vknewsclient.domain.entity.StatisticItem
 import com.example.vknewsclient.R
 
 @Composable
 fun Post(
     feedPost: FeedPost,
     onLikeClickListener: (StatisticItem) -> Unit,
-    onShareClickListener: (StatisticItem) -> Unit,
     onCommentClickListener: (StatisticItem) -> Unit,
-    onViewsClickListener: (StatisticItem) -> Unit,
 ) {
     Column {
         Card(modifier = Modifier) {
@@ -52,9 +50,7 @@ fun Post(
                 UserReaction(
                     feedPost.statistics,
                     onLikeClickListener = onLikeClickListener,
-                    onShareClickListener = onShareClickListener,
                     onCommentClickListener = onCommentClickListener,
-                    onViewsClickListener = onViewsClickListener,
                     isLiked = feedPost.isLiked
                 )
             }
@@ -74,9 +70,7 @@ fun Post(
 fun UserReaction(
     statistics: List<StatisticItem>,
     onLikeClickListener: (StatisticItem) -> Unit,
-    onShareClickListener: (StatisticItem) -> Unit,
     onCommentClickListener: (StatisticItem) -> Unit,
-    onViewsClickListener: (StatisticItem) -> Unit,
     isLiked: Boolean
 ) {
     Row(
@@ -88,10 +82,7 @@ fun UserReaction(
             val views = statistics.getItemByType(StatisticType.VIEWS)
             TextWithImage(
                 imageResIs = R.drawable.ic_views_count,
-                str = formatStatisticCount(views.count),
-                onItemClickListener = {
-                    onViewsClickListener(views)
-                }
+                str = formatStatisticCount(views.count)
             )
         }
         Row(
@@ -101,10 +92,7 @@ fun UserReaction(
             val shares = statistics.getItemByType(StatisticType.SHARES)
             TextWithImage(
                 imageResIs = R.drawable.ic_share,
-                str = formatStatisticCount(shares.count),
-                onItemClickListener = {
-                    onShareClickListener(shares)
-                }
+                str = formatStatisticCount(shares.count)
             )
             val comments = statistics.getItemByType(StatisticType.COMMENTS)
             TextWithImage(
@@ -146,13 +134,18 @@ private fun List<StatisticItem>.getItemByType(type: StatisticType): StatisticIte
 private fun TextWithImage(
     imageResIs: Int,
     str: String,
-    onItemClickListener: () -> Unit,
+    onItemClickListener: (() -> Unit)? = null,
     tint: Color = MaterialTheme.colors.onSecondary
 ) {
-    Row(
-        modifier = Modifier.clickable {
+    val modifier = if(onItemClickListener == null){
+        Modifier
+    }else{
+        Modifier.clickable {
             onItemClickListener()
         }
+    }
+    Row(
+        modifier = modifier
     ) {
         Icon(
             painter = painterResource(id = imageResIs),

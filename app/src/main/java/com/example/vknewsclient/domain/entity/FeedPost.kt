@@ -1,13 +1,14 @@
-package com.example.vknewsclient.domain
+package com.example.vknewsclient.domain.entity
 
 import android.os.Bundle
 import android.os.Parcelable
+import androidx.compose.runtime.Immutable
 import androidx.navigation.NavType
 import com.google.gson.Gson
 import kotlinx.parcelize.Parcelize
-import kotlin.random.Random
 
 @Parcelize
+@Immutable
 data class FeedPost(
     val id: Long,
     val communityId: Long,
@@ -17,7 +18,7 @@ data class FeedPost(
     val contentText: String,
     val contentImageUrl: String?,
     val statistics: List<StatisticItem>,
-    val isLiked : Boolean = Random.nextBoolean()
+    val isLiked: Boolean
 ) : Parcelable {
 
     companion object {

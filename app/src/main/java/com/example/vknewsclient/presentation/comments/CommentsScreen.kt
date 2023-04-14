@@ -1,6 +1,6 @@
 package com.example.vknewsclient.presentation.comments
 
-import androidx.compose.foundation.Image
+import android.app.Application
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -9,32 +9,46 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.vknewsclient.domain.FeedPost
-import com.example.vknewsclient.domain.PostComment
-import com.example.vknewsclient.R
+import coil.compose.AsyncImage
+import com.example.vknewsclient.ViewModelFactory
+import com.example.vknewsclient.VkNewsClientApplication
+import com.example.vknewsclient.domain.entity.FeedPost
+import com.example.vknewsclient.domain.entity.PostComment
+import com.example.vknewsclient.getApplicationComponent
 
 @Composable
 fun CommentsScreen(
     feedPost: FeedPost,
     onBackPressed: () -> Unit
 ) {
-    val viewModel: CommentsViewModel = viewModel(
-        factory = CommentsViewModelFactory(feedPost)
-    )
-    val screenState = viewModel.screenState.observeAsState(CommentsScreenState.Initial)
+    val component = getApplicationComponent()
+        .getCommentsScreenComponent()
+        .create(feedPost)
+    val viewModel: CommentsViewModel = viewModel(factory = component.getCommentsViewModelFactory())
+    val screenState = viewModel.screenState.collectAsState(CommentsScreenState.Initial)
+
+    CommentsScreenContent(screenState = screenState, onBackPressed = onBackPressed)
+}
+
+@Composable
+fun CommentsScreenContent(
+    screenState: State<CommentsScreenState>,
+    onBackPressed: () -> Unit
+) {
     val currentState = screenState.value
     if (currentState is CommentsScreenState.Comments) {
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(text = "Comments for feedPost id : ${currentState.feedPost.id}") },
+                    title = { Text(text = "Comments") },
                     navigationIcon = {
                         IconButton(onClick = {
                             onBackPressed()
@@ -63,6 +77,7 @@ fun CommentsScreen(
     }
 }
 
+
 @Composable
 fun CommentItem(
     postComment: PostComment
@@ -77,11 +92,11 @@ fun CommentItem(
                 bottom = 4.dp
             )
     ) {
-        Image(
+        AsyncImage(
+            model = postComment.authorAvatarUrl,
             modifier = Modifier
                 .size(50.dp)
                 .clip(CircleShape),
-            painter = painterResource(id = R.drawable.post_comunity_thumbnail),
             contentDescription = null,
         )
         Spacer(Modifier.width(8.dp))
